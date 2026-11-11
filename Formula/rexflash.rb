@@ -35,7 +35,8 @@ class Rexflash < Formula
   end
 
   test do
-    assert_match "usage: rexflash", shell_output("#{bin}/rexflash 2>&1", 2)
+    # Without a TTY on stdin, a usage error exits at once. With one, rexflash waits for a key.
+    assert_match "usage: rexflash", shell_output("#{bin}/rexflash 2>&1 </dev/null", 2)
     assert_match "#{opt_bin}/rexflash", (pkgshare/"rexflash.lua").read
   end
 end
