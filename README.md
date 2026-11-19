@@ -6,6 +6,7 @@ Homebrew formulae by [g4rcez](https://github.com/g4rcez).
 | ------- | ----------- |
 | [rexflash](https://github.com/g4rcez/rexflash) | Hint and flash-style label picker for Rex terminal panes |
 | [rexpanes](https://github.com/g4rcez/rexpanes) | Pick a Rex pane by its number, like tmux display-panes |
+| [wm](https://github.com/g4rcez/wm) | Tiling window manager for macOS, configured in Lua (builds from source: `--HEAD`) |
 
 ```sh
 brew install g4rcez/tap/rexflash
