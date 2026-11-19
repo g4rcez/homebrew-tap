@@ -1,8 +1,10 @@
-# Builds wm from source (there is no release yet), so it installs with --HEAD:
-#   brew install --HEAD g4rcez/tap/wm
+# Builds wm from the source of a tagged release: brew install g4rcez/tap/wm
+# --HEAD builds the latest main instead.
 class Wm < Formula
   desc "Tiling window manager for macOS, configured in Lua"
   homepage "https://wm.garcez.dev"
+  url "https://github.com/g4rcez/wm/archive/refs/tags/v0.1.0.tar.gz"
+  sha256 "954bc278a02a19e1ca36235117b82e18ed5bba10ec2d77eb5f7cc70b4784b0f6"
   license "MIT"
   head "https://github.com/g4rcez/wm.git", branch: "main"
 
