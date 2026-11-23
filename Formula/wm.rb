@@ -3,8 +3,8 @@
 class Wm < Formula
   desc "Tiling window manager for macOS, configured in Lua"
   homepage "https://wm.garcez.dev"
-  url "https://github.com/g4rcez/wm/archive/refs/tags/v0.3.1.tar.gz"
-  sha256 "a7369cde627f4b5701c2434d7c5a3411964698544df2bfb02761003ad3436479"
+  url "https://github.com/g4rcez/wm/archive/refs/tags/v0.3.2.tar.gz"
+  sha256 "623056ef3bad782800df8213fac5313c59cafcbb509ef29f25e62e2df0f06cc7"
   license "MIT"
   head "https://github.com/g4rcez/wm.git", branch: "main"
 
