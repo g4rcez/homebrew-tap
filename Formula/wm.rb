@@ -1,29 +1,41 @@
-# Builds wm from the source of a tagged release: brew install g4rcez/tap/wm
-# --HEAD builds the latest main instead.
+# Installs the signed app of a wm release: brew install g4rcez/tap/wm
+# --HEAD builds the latest main from source instead.
+# scripts/release.sh of g4rcez/wm writes this file from scripts/wm.rb.in: change it there.
 class Wm < Formula
   desc "Tiling window manager for macOS, configured in Lua"
   homepage "https://wm.garcez.dev"
-  url "https://github.com/g4rcez/wm/archive/refs/tags/v0.4.2.tar.gz"
-  sha256 "f6fe511fa6e0fc80a1bab5871c19cc4a98fcedd6be63adf1ffcef8a4588fab23"
+  url "https://github.com/g4rcez/wm/releases/download/v0.5.0/wm-0.5.0-macos.tar.gz"
+  sha256 "d68702c069a5b2070f0d6046e6bd91eaa151128a641babbfa4d1b4f097e3c5f2"
   license "MIT"
-  head "https://github.com/g4rcez/wm.git", branch: "main"
 
-  depends_on xcode: ["26.0", :build] # the Swift 6.2 toolchain
+  head do
+    url "https://github.com/g4rcez/wm.git", branch: "main"
+
+    depends_on xcode: ["26.0", :build] # the Swift 6.2 toolchain
+  end
+
   depends_on macos: :sonoma
 
+  # macOS keeps the permissions of wm by its signature: Homebrew must leave the signed app as it is.
+  skip_clean "wm.app"
+
   def install
-    # Homebrew already sandboxes the build, and SwiftPM cannot nest its own sandbox in it.
-    # The app is signed ad hoc: Homebrew has no certificate of yours.
-    with_env(
-      "SWIFT_BUILD_FLAGS" => "--disable-sandbox",
-      "CODESIGN_IDENTITY" => "-",
-      "NO_START"          => "1",
-      "NO_STOP"           => "1",
-    ) do
-      system "./build-app.sh", "release"
+    if build.head?
+      # Homebrew already sandboxes the build, and SwiftPM cannot nest its own sandbox in it.
+      # The app is signed ad hoc: Homebrew has no certificate of yours.
+      with_env(
+        "SWIFT_BUILD_FLAGS" => "--disable-sandbox",
+        "CODESIGN_IDENTITY" => "-",
+        "NO_START"          => "1",
+        "NO_STOP"           => "1",
+      ) do
+        system "./build-app.sh", "release"
+      end
+      prefix.install ".build/wm.app"
+    else
+      prefix.install "wm.app"
     end
 
-    prefix.install ".build/wm.app"
     bin.install_symlink prefix/"wm.app/Contents/MacOS/wm"
     bin.install_symlink prefix/"wm.app/Contents/MacOS/wmd"
 
@@ -34,13 +46,16 @@ class Wm < Formula
     <<~EOS
       Start wm with:
         wm daemon start
+      After an upgrade, restart it with:
+        wm daemon reload
 
-      macOS asks for Accessibility the first time. The app is signed ad hoc, so macOS asks again after each
-      `brew upgrade wm`. Sign it with your own certificate to keep the permissions:
-        codesign --force --sign "<certificate>" #{opt_prefix}/wm.app
+      macOS asks for Accessibility at the first start. Releases are signed with one certificate, so upgrades keep the
+      permissions. If you come from a build older than 0.5.0 (or a --HEAD build), clear its stale grants once:
+        tccutil reset Accessibility local.wm
+        tccutil reset ScreenCapture local.wm
 
-      start_at_login needs the app in a fixed place. Copy it to /Applications:
-        ditto #{opt_prefix}/wm.app /Applications/wm.app
+      start_at_login uses this path, which stays the same through upgrades:
+        #{opt_prefix}/wm.app
     EOS
   end
 
