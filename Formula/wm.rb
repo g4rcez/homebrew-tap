@@ -4,8 +4,8 @@
 class Wm < Formula
   desc "Tiling window manager for macOS, configured in Lua"
   homepage "https://wm.garcez.dev"
-  url "https://github.com/g4rcez/wm/releases/download/v0.5.1/wm-0.5.1-macos.tar.gz"
-  sha256 "26ddf5977366c14857fa9c0253bff67ae1b31f4ff861e4690f8a9866739166ab"
+  url "https://github.com/g4rcez/wm/releases/download/v1.0.0/wm-1.0.0-macos.tar.gz"
+  sha256 "cb7dfd90c8add51aeb27da79f3c58753684a53b3ad6922eea7a38314fad968d8"
   license "MIT"
 
   head do
@@ -49,10 +49,12 @@ class Wm < Formula
       After an upgrade, restart it with:
         wm daemon reload
 
-      macOS asks for Accessibility at the first start. Releases are signed with one certificate, so upgrades keep the
-      permissions. If you come from a build older than 0.5.0 (or a --HEAD build), clear its stale grants once:
+      macOS asks for Accessibility at the first start. Releases are signed with one Developer ID and notarized, so
+      upgrades keep the permissions. If you come from 0.5.1 or older (or a --HEAD build), clear its stale grants once:
+        wm daemon stop
         tccutil reset Accessibility local.wm
         tccutil reset ScreenCapture local.wm
+        wm daemon start
 
       start_at_login uses this path, which stays the same through upgrades:
         #{opt_prefix}/wm.app
@@ -61,5 +63,15 @@ class Wm < Formula
 
   test do
     assert_match "wm", shell_output("#{bin}/wm --help")
+
+    # A release must arrive as it was signed and notarized, or macOS asks for the permissions again.
+    unless build.head?
+      app = prefix/"wm.app"
+      system "/usr/bin/codesign", "--verify", "--deep", "--strict", app
+      assert_match "subject.OU] = GH3F86PTMX", shell_output("/usr/bin/codesign -dr - #{app} 2>&1")
+      # The sandbox of the test stops Gatekeeper, so this checks that the ticket of the notarization is stapled to the app.
+      # scripts/verify-release.sh asks Gatekeeper before the release is published.
+      assert_path_exists app/"Contents/CodeResources"
+    end
   end
 end
